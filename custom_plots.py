@@ -340,3 +340,142 @@ def plot_stock_bond_correlation(df):
 
     # Show the plot
     return fig
+
+
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+import numpy as np
+
+def plot_portfolio_returns_bubble_year(df, window_size=256):
+    #WINDOW YEARLY RETURNS
+    returns_to_aggregate=['RET_SPX_d', 'RET_10Y_d', 'RET_DXY_d', 'RET_FFR_d', 'RET_SHORT_SPX_d', 'RET_SHORT_10Y_d', 'RET_SHORT_DXY_d', 'ER_SPX_d', 'ER_10Y_d', 'ER_DXY_d',
+        'ER_SHORT_SPX_d', 'ER_SHORT_10Y_d', 'ER_SHORT_DXY_d','ER_RP_Portfolio_LONG', 'ER_RP_Portfolio_SHORT','RET_RP_Portfolio_LONG', 'RET_RP_Portfolio_SHORT',
+        'ER_TANGENCY_Portfolio_SHORT', 'RET_TANGENCY_Portfolio_SHORT','RET_RPLONGSHORT_DELTA', 'RET_IDEALSHORT_DELTA']
+
+    for _column in returns_to_aggregate:
+        agg_column_name='WINDOWED_'+_column
+        df[agg_column_name]=calculate_windowed_returns(df[_column],window_size)
+
+
+    #AGG YEAR SUMMARY
+    windowed_columns = [col for col in df.columns if "WINDOWED" in col]
+    weights_columns=['RP_LONG_SPX', 'RP_LONG_10Y', 'RP_SHORT_SPX','RP_SHORT_10Y', 'RP_SHORT_DXY']
+
+    agg_dict = {
+        **{col: 'mean' for col in weights_columns},
+        **{col: 'last' for col in windowed_columns},
+        **{col: 'count' for col in ['Year']}
+    }
+
+    years=df.groupby('Year').aggregate(agg_dict)
+    years['WINDOWED_RET_RPLONGSHORT_DELTA']=years['WINDOWED_RET_RPLONGSHORT_DELTA']*100
+    performance_df=years.dropna(how='any') #[[col for col in years.columns if (("RP" in col) or ("d" in col and ("SHORT" and "FFR") not in col)) and "ER" not in col]]*100
+
+    # Assuming 'years' is your dataframe
+    # Create a new column for the adjusted delta values
+    years = performance_df[performance_df.index>=1970]
+    years['Adjusted_Delta'] = np.maximum(years['WINDOWED_RET_RPLONGSHORT_DELTA'], 0) + 1
+
+    years['hover_text'] = years.apply(lambda row: f"""
+    Year: {row.name}
+    
+    Performance: {row['WINDOWED_RET_RP_Portfolio_SHORT']:.2%}
+
+    Weights:
+    {-row['RP_SHORT_SPX']:.2%} SPX
+    {-row['RP_SHORT_10Y']:.2%} 10Y
+    {-row['RP_SHORT_DXY']:.2%} DXY
+
+
+    Delta: {row['WINDOWED_RET_RPLONGSHORT_DELTA']/100:.2%}
+
+    Market:
+    SPX: {row['WINDOWED_RET_SPX_d']:.2%}
+    10YT: {row['WINDOWED_RET_10Y_d']:.2%}
+    DXY: {row['WINDOWED_RET_DXY_d']:.2%}
+
+    """.strip(), axis=1)
+
+    # Create opacity values based on delta
+    years['opacity'] = np.where(years['WINDOWED_RET_RPLONGSHORT_DELTA'] >= 0, 0.8, 0.3)
+
+    # Create the bubble plot
+    fig = px.scatter(
+        years,
+        x=years.index,
+        y='WINDOWED_RET_RP_Portfolio_SHORT',
+        size='Adjusted_Delta',
+        hover_name=years.index,
+        custom_data=['hover_text'],
+        labels={
+            'WINDOWED_RET_RP_Portfolio_SHORT': 'Returns',
+            'index': 'Year'
+        },
+        title='Strategy Returns by Year'
+    )
+
+    # Customize the layout
+    fig.update_layout(
+        title={
+            'text': 'Short-Only Risk Parity Portfolio',
+            'y':0.95,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top',
+            'font': dict(size=24)
+        },
+
+        annotations=[
+            dict(
+                text='Absolute Returns by Year',  # Your subtitle text
+                xref='paper',
+                yref='paper',
+                x=0.5,
+                y=1.05,
+                xanchor='center',
+                yanchor='bottom',
+                showarrow=False,
+                font=dict(size=16)
+            )
+        ],
+
+        xaxis_title='Year',
+        yaxis_title='Return',
+        xaxis=dict(tickangle=45, dtick=5),
+        yaxis=dict(tickformat='1%', gridcolor='lightgrey'),
+        plot_bgcolor='white',
+        hovermode='closest',
+        width=1000,
+        height=600,
+        margin=dict(t=100, l=80, r=40, b=80)
+    )
+
+    # Update the traces
+    fig.update_traces(
+        marker=dict(
+            sizeref=2.*max(years['Adjusted_Delta'])/(40.**2),
+            sizemin=4,
+            line=dict(width=1, color='DarkSlateGrey'),
+            color='LightSeaGreen',
+            opacity=years['opacity']  # Use the opacity column
+        ),
+        hovertemplate='%{customdata[0]}',
+    )
+
+    # Add a horizontal line at y=0
+    fig.add_shape(
+        type="line",
+        x0=years.index.min(),
+        x1=years.index.max(),
+        y0=0,
+        y1=0,
+        line=dict(color="Grey", width=1, dash="dot"),
+    )
+
+    fig.update_xaxes(
+        gridcolor='rgba(189, 195, 199, 0.5)',
+        rangeslider_visible=True
+    )
+
+    return fig

@@ -7,7 +7,7 @@ from window_functions import calculate_windowed_returns, calculate_windowed_annu
 import plotly.graph_objects as go
 import plotly.express as px
 
-from custom_plots import plot_rolling_excess_returns, plot_yield_comparison, plot_stock_bond_correlation
+from custom_plots import plot_rolling_excess_returns, plot_yield_comparison, plot_stock_bond_correlation, plot_portfolio_returns_bubble_year
 
 ##CONFIG
 # Set the title and favicon that appear in the Browser's tab bar.
@@ -34,7 +34,7 @@ def get_images():
 @st.cache_data
 def get_data():
     df= pd.read_pickle("./Data/processed_data.pkl")
-    return df
+    return df[df.index.year>1970]
 
 
 
@@ -118,6 +118,17 @@ st.plotly_chart(fig_yeild)
 
 
 '''
+These are the returns of the risk parity short portfolio by decade. The bubble size corresponds to how much better the short RP portfolio performed vs the long portfolio. The muted dots, mean that the naieve long RP portfolio outperformed.
+
+---
+'''
+
+df = get_data()  
+fig_yeild = plot_portfolio_returns_bubble_year(df)
+st.plotly_chart(fig_yeild)
+
+'''
+
 To reiterate we want to find the best portfolio among:
 
 1. **Cash**: Earn the "risk-free" rate
@@ -139,32 +150,10 @@ We can simplify this by problem by thinking about with considering the excess re
 
 
 st.markdown(r"""
-## Risk Parity: A Balanced Approach to Portfolio Construction
+For both the long and the short portfolios we find the covarience matrix, and the weights. Use a trailing window of 252 trading days ~1 year. And compute the predicted best weights daily. The weights are forward looking, meaning we calculate them without knowing what the realized vol is, Assume that we can rebalance the portfolios once per day.
 
-Risk parity is an innovative and compelling approach to portfolio construction that addresses the limitations of traditional asset allocation methods. Unlike capital-weighted strategies that often result in concentration risk, risk parity seeks to equalize risk contributions across all assets in the portfolio. This approach is based on the principle that risk, not capital, should be the primary factor in allocation decisions.
+Risk parity gives us a realistic benchamrk for what a good, but non-propeitary porfolio would look like. 
+            
+A big reason risk parity makes a "good" portfolio is that volatility has autoregressive structure It's outside of the scope of this doc, but we could improve upon the naive implemntation. By having better predictive models for covarience matrix like a GARCH model.
 
-The core idea of risk parity is to allocate portfolio weights such that each asset contributes equally to the overall portfolio risk. Crucially, this approach considers not just individual asset volatilities, but also the covariances between assets. The risk contribution of each asset is given by:
-
-$$RC_i = w_i \cdot (\Sigma w)_i$$
-
-where $w_i$ is the weight of asset $i$, $\Sigma$ is the covariance matrix of asset returns, and $(\Sigma w)_i$ is the $i$-th element of the vector resulting from the matrix multiplication of $\Sigma$ and $w$.
-
-In a risk parity portfolio, we aim to equalize these risk contributions:
-
-$$RC_i = RC_j \quad \forall i,j$$
-
-This leads to a more nuanced allocation that accounts for the complex interactions between assets, achieving:
-
-1. **Improved Diversification**: It prevents over-concentration in high-risk assets or highly correlated asset groups, leading to a more balanced risk exposure.
-2. **Enhanced Risk-Adjusted Returns**: By not over-allocating to riskier assets or ignoring correlations, it can potentially improve the Sharpe ratio of the portfolio.
-3. **Adaptability**: The approach naturally adjusts to changing market conditions as volatilities and correlations evolve.
-4. **Reduced Tail Risk**: By avoiding concentration in any single asset or highly correlated asset class, it can help mitigate extreme downside scenarios.
-
-The weights in a risk parity portfolio can be found by solving the following optimization problem:
-
-$$\min_w \sum_{i=1}^n (\log(w_i) - \log(RC_i))^2$$
-
-subject to $\sum_{i=1}^n w_i = 1$ and $w_i > 0$ for all $i$.
-
-This sophisticated yet intuitive approach to portfolio construction offers a robust alternative to traditional methods, potentially leading to more stable and efficient portfolios over the long term by fully accounting for the covariance structure of the assets.
 """)
