@@ -9,6 +9,7 @@ st.set_page_config(
     page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
 )
 
+
 # -----------------------------------------------------------------------------
 # Declare some useful functions.
 
@@ -72,6 +73,59 @@ Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) web
 notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
 But it's otherwise a great (and did I mention _free_?) source of data.
 '''
+
+
+# Start with an essay introduction
+st.title("The Evolution of Global GDP: An Interactive Analysis")
+
+st.markdown("""
+# :chart_with_upwards_trend: Exploring Global Economic Trends
+
+---
+
+In this interactive essay, we'll delve into the fascinating trends in global Gross Domestic Product (GDP) over the past several decades. 
+GDP, as a measure of economic output, provides crucial insights into the economic health and growth patterns of nations worldwide.
+
+Our analysis will focus on select countries, allowing us to compare and contrast their economic trajectories. Through interactive 
+charts and data visualizations, we'll uncover patterns, anomalies, and significant events that have shaped the global economy.
+
+---
+
+## Key Questions to Consider
+
+As you engage with the data, reflect on these essential questions:
+
+1. How have major historical events impacted GDP growth?
+2. Which countries have shown the most consistent growth, and why?
+3. What can GDP trends tell us about the shifting balance of global economic power?
+
+---
+
+:bulb: **Did you know?** The GDP formula is often represented as:
+
+$$GDP = C + I + G + (X - M)$$
+
+Where:
+- C = Consumer Spending
+- I = Business Investment
+- G = Government Spending
+- X = Exports
+- M = Imports
+
+---
+
+:arrow_down: Use the controls below to customize your view of the data and dive deeper into these economic narratives.
+""")
+
+# Add some space
+st.write("")
+
+# You can also add a horizontal line like this:
+st.markdown("---")
+
+
+
+
 
 # Add some spacing
 ''
