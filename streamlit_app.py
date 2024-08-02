@@ -3,24 +3,59 @@ import pandas as pd
 import math
 from pathlib import Path
 
+@st.cache_data
+def get_images():
+    # Create three columns
+    col1, col2, col3 = st.columns(3)
+    # Add an image to each column
+    with col1:
+        st.image("https://miro.medium.com/v2/resize:fit:1246/format:webp/1*NHs2eDzhEjNUdFFlm_ut5A.png", caption="Liquidity Hierarchy: cyclical expansion and contraction of credit", use_column_width=True)
+
+    with col2:
+        st.image("https://substackcdn.com/image/fetch/w_1456,c_limit,f_webp,q_auto:good,fl_progressive:steep/https%3A%2F%2Fsubstack-post-media.s3.amazonaws.com%2Fpublic%2Fimages%2F6447ea09-e627-400b-bd96-ba7e69fe0777_900x629.png", caption="Investment Seasons: a time to plant, and a time to pluck up that which is planted", use_column_width=True)
+
+    with col3:
+        st.image("https://cdn.prod.website-files.com/634054c00f602044abb3060d/64625fa85ed5193ea3ad5f71_Bitcoin%20Rainbow%20Chart%20.webp", caption="Bitcoin Hyperstition: a very optimistic logistic regression", use_column_width=True)
+
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
-    page_title='GDP dashboard',
-    page_icon=':earth_americas:', # This is an emoji shortcode. Could be a URL too.
+    page_title='Short All',
+    page_icon='# :chart_with_downward_trend', 
 )
 
 
+'''
+# Short All
+'''
+
+'''
+---
+Attempts to uncover a pattern of rise and fall in the market have produced a colorful history...
+
+&nbsp;
+'''
+get_images()
+
+'''
+---
+It's inductively sound and often accurate to think that the general trends of the past will continue. Going long stocks and bonds at risk parity has been an efficacious strategy.
+
+On the other hand, betting on a broad decline in asset prices (in the United States) is a bet that things will not merely stay the same.
+
+In this document, we'll explore the 'short-everything' strategy—a portfolio weighted between short positions on the S&P 500, 10-year Treasuries, and leveraged Dollar Index (DXY). Our analysis will unfold as follows:
+
+1. **Historical Performance**: How have stocks, bonds, DXY, and cash have performed since approximately 1971? 
+2. **Portfolio Construction**: How do we size the bet? How we'll has it worked in the past?
+3. **Historical Reconstruction**: When it worked...why did it work?
+4. **Prediction**: How bad of an idea is it to put on this trade in 2024H2? What things might I belive that would make this a good trade?
+---
+
+'''
 # -----------------------------------------------------------------------------
 # Declare some useful functions.
 
 @st.cache_data
 def get_gdp_data():
-    """Hello...Grab GDP data from a CSV file.
-
-    This uses caching to avoid having to read the file every time. If we were
-    reading from an HTTP endpoint instead of a file, it's a good idea to set
-    a maximum age to the cache with the TTL argument: @st.cache_data(ttl='1d')
-    """
 
     # Instead of a CSV on disk, you could read from an HTTP endpoint here too.
     DATA_FILENAME = Path(__file__).parent/'data/gdp_data.csv'
@@ -58,150 +93,10 @@ def get_gdp_data():
 
     return gdp_df
 
-gdp_df = get_gdp_data()
+#gdp_df = get_gdp_data()
 
 # -----------------------------------------------------------------------------
 # Draw the actual page
 
 # Set the title that appears at the top of the page.
-'''
-# :earth_americas: GDP dashboard
 
-HELLO
-
-Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
-notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
-But it's otherwise a great (and did I mention _free_?) source of data.
-'''
-
-
-# Start with an essay introduction
-st.title("The Evolution of Global GDP: An Interactive Analysis")
-
-st.markdown("""
-# :chart_with_upwards_trend: Exploring Global Economic Trends
-
----
-
-In this interactive essay, we'll delve into the fascinating trends in global Gross Domestic Product (GDP) over the past several decades. 
-GDP, as a measure of economic output, provides crucial insights into the economic health and growth patterns of nations worldwide.
-
-Our analysis will focus on select countries, allowing us to compare and contrast their economic trajectories. Through interactive 
-charts and data visualizations, we'll uncover patterns, anomalies, and significant events that have shaped the global economy.
-
----
-
-## Key Questions to Consider
-
-As you engage with the data, reflect on these essential questions:
-
-1. How have major historical events impacted GDP growth?
-2. Which countries have shown the most consistent growth, and why?
-3. What can GDP trends tell us about the shifting balance of global economic power?
-
----
-
-:bulb: **Did you know?** The GDP formula is often represented as:
-
-$$GDP = C + I + G + (X - M)$$
-
-Where:
-- C = Consumer Spending
-- I = Business Investment
-- G = Government Spending
-- X = Exports
-- M = Imports
-
----
-
-:arrow_down: Use the controls below to customize your view of the data and dive deeper into these economic narratives.
-""")
-
-# Add some space
-st.write("")
-
-# You can also add a horizontal line like this:
-st.markdown("---")
-
-
-
-
-
-# Add some spacing
-''
-''
-
-min_value = gdp_df['Year'].min()
-max_value = gdp_df['Year'].max()
-
-from_year, to_year = st.slider(
-    'Which years are you interested in?',
-    min_value=min_value,
-    max_value=max_value,
-    value=[min_value, max_value])
-
-countries = gdp_df['Country Code'].unique()
-
-if not len(countries):
-    st.warning("Select at least one country")
-
-selected_countries = st.multiselect(
-    'Which countries would you like to view?',
-    countries,
-    ['DEU', 'FRA', 'GBR', 'BRA', 'MEX', 'JPN'])
-
-''
-''
-''
-
-# Filter the data
-filtered_gdp_df = gdp_df[
-    (gdp_df['Country Code'].isin(selected_countries))
-    & (gdp_df['Year'] <= to_year)
-    & (from_year <= gdp_df['Year'])
-]
-
-st.header('GDP over time', divider='gray')
-
-''
-
-st.line_chart(
-    filtered_gdp_df,
-    x='Year',
-    y='GDP',
-    color='Country Code',
-)
-
-''
-''
-
-
-first_year = gdp_df[gdp_df['Year'] == from_year]
-last_year = gdp_df[gdp_df['Year'] == to_year]
-
-st.header(f'GDP in {to_year}', divider='gray')
-
-''
-
-cols = st.columns(4)
-
-for i, country in enumerate(selected_countries):
-    col = cols[i % len(cols)]
-
-    with col:
-        first_gdp = first_year[gdp_df['Country Code'] == country]['GDP'].iat[0] / 1000000000
-        last_gdp = last_year[gdp_df['Country Code'] == country]['GDP'].iat[0] / 1000000000
-
-        if math.isnan(first_gdp):
-            growth = 'n/a'
-            delta_color = 'off'
-        else:
-            growth = f'{last_gdp / first_gdp:,.2f}x'
-            delta_color = 'normal'
-
-        st.metric(
-            label=f'{country} GDP',
-            value=f'{last_gdp:,.0f}B',
-            delta=growth,
-            delta_color=delta_color
-        )
