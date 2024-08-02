@@ -69,17 +69,17 @@ In this document, we'll explore the 'short-everything' strategy—a portfolio we
 How have the following three investment apporaches fared historically?
 
 1. **Cash**: Earn the "risk-free" rate
-2. **Long**: go long some weighting of stocks and bonds
-3. **Short**: go short some weighting of stocks, bonds, and leverged USD 
+2. **Long**: long some weighting of stocks and bonds
+3. **Short**: short some weighting of stocks, bonds, and leverged USD 
 
 Cash is the effective fedral funds rate (FFR). Stocks are SPX total returns. USD is DXY. Bonds are 10Y treasuryies.
 
 '''
 
 '''
-FFR is pulled directly FRED. SPX is adjusted to include dividends. 10Y bond prices are approximated by calculating it's modified duration and change in yield. After data wrangling we end up with the daily absolute and excess returns for each asset. 
+On the data side, FFR is pulled directly FRED. SPX is adjusted to include dividends. 10Y bond prices are approximated by calculating it's modified duration and change in yield. After data wrangling we end up with the daily absolute and excess returns for each asset. 
 
-Some assumptions. The short positions in stocks and bonds are assumed to be 100% short (i.e., the exact inverse of a long position) without any additional leverage. Bonds are always rolled to keep constant 10y meaturies. Borrowing cost, exchange fees, and slippage are assumed to always be de-minimis. 
+When calculating returns, the short positions in stocks and bonds are assumed to be 100% short (i.e., the exact inverse of a long position) without any additional leverage. Bonds are always rolled to keep constant 10y meaturies. Borrowing cost, exchange fees, and slippage are assumed to always be de-minimis. 
 
 
 We can simplify this by considering the excess returns of the long and short stratgies, and comparing them 
