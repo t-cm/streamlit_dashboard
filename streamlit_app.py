@@ -14,7 +14,7 @@ st.set_page_config(
 
 @st.cache_data
 def get_gdp_data():
-    """Grab GDP data from a CSV file.
+    """Hello...Grab GDP data from a CSV file.
 
     This uses caching to avoid having to read the file every time. If we were
     reading from an HTTP endpoint instead of a file, it's a good idea to set
@@ -65,6 +65,8 @@ gdp_df = get_gdp_data()
 # Set the title that appears at the top of the page.
 '''
 # :earth_americas: GDP dashboard
+
+HELLO
 
 Browse GDP data from the [World Bank Open Data](https://data.worldbank.org/) website. As you'll
 notice, the data only goes to 2022 right now, and datapoints for certain years are often missing.
