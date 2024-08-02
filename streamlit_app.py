@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import numpy as np
 import math
 from pathlib import Path
 from window_functions import calculate_windowed_returns, calculate_windowed_annualized_returns
@@ -30,16 +31,11 @@ def get_images():
 @st.cache_data
 def get_data():
     df= pd.read_pickle("./Data/processed_data.pkl")
-    return df.head(5)
+    return df
 
 
-##APP
-df=get_data()
-st.dataframe(df)
 
-# df.head(2)
-
-
+##Intro
 
 '''
 # Short All
@@ -59,14 +55,35 @@ It's inductively sound and often accurate to think that the general trends of th
 
 On the other hand, betting on a broad decline in asset prices (in the United States) is a bet that things will not merely stay the same.
 
-In this document, we'll explore the 'short-everything' strategy—a portfolio weighted between short positions on the S&P 500, 10-year Treasuries, and leveraged Dollar Index (DXY). Our analysis will unfold as follows:
+In this document, we'll explore the 'short-everything' strategy—a portfolio weighted between short positions on the S&P 500, 10-year Treasuries, and leveraged Dollar Index (DXY). The analysis will cover:
 
-1. **Historical Performance**: How have stocks, bonds, DXY, and cash have performed since approximately 1971? 
+1. **Asset Overview**: How have stocks, bonds, DXY, and cash have performed since approximately 1971? How do we measure performance?
 2. **Portfolio Construction**: How do we size the bet? How we'll has it worked in the past?
 3. **Historical Reconstruction**: When it worked...why did it work?
-4. **Prediction**: How bad of an idea is it to put on this trade in 2024H2? What things might I belive that would make this a good trade?
+4. **Prediction**: How bad of an idea is it to put on this trade in 2024H2? What things might I believe that would make this a good trade?
 ---
 
 '''
-# -----------------------------------------------------------------------------
-# Declare some useful functions.
+
+'''
+How have the following three investment apporaches fared historically?
+
+1. **Cash**: Earn the "risk-free" rate
+2. **Long**: go long some weighting of stocks and bonds
+3. **Short**: go short some weighting of stocks, bonds, and leverged USD 
+
+Cash is the effective fedral funds rate (FFR). Stocks are SPX total returns. USD is DXY. Bonds are 10Y treasuryies.
+
+'''
+
+'''
+FFR is pulled directly FRED. SPX is adjusted to include dividends. 10Y bond prices are approximated by calculating it's modified duration and change in yield. After data wrangling we end up with the daily absolute and excess returns for each asset. 
+
+Some assumptions. The short positions in stocks and bonds are assumed to be 100% short (i.e., the exact inverse of a long position) without any additional leverage. Bonds are always rolled to keep constant 10y meaturies. Borrowing cost, exchange fees, and slippage are assumed to always be de-minimis. 
+
+
+We can simplify this by considering the excess returns of the long and short stratgies, and comparing them 
+
+The **best** portfolio is the one with the maximum sharpe ratio over the window of time we deem relevant. 
+Here a PM considers 
+'''
