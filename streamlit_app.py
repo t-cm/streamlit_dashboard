@@ -35,7 +35,7 @@ def get_data():
 
 ##APP
 df=get_data()
-print(df.columns)
+st.dataframe(df)
 
 # df.head(2)
 
