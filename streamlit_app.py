@@ -4,6 +4,7 @@ import math
 from pathlib import Path
 from window_functions import calculate_windowed_returns, calculate_windowed_annualized_returns
 
+##FUNCTIONS
 @st.cache_data
 def get_images():
     # Create three columns
@@ -18,6 +19,18 @@ def get_images():
     with col3:
         st.image("https://cdn.prod.website-files.com/634054c00f602044abb3060d/64625fa85ed5193ea3ad5f71_Bitcoin%20Rainbow%20Chart%20.webp", caption="Bitcoin Hyperstition: a very optimistic logistic regression", use_column_width=True)
 
+@st.cache_data
+def get_data():
+    df= pd.read_pickle("./Data/processed_data.pkl")
+    return df.head(5)
+
+
+##APP
+df=get_data()
+print(df.columns)
+
+df.head(2)
+
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
     page_title='Short All',
@@ -31,7 +44,7 @@ st.set_page_config(
 
 '''
 ---
-Attempts to uncover a pattern of rise and fall in the market have produced a colorful history...
+Attempts to uncover patterns of rise and fall in the market have produced a colorful history...
 
 &nbsp;
 '''
