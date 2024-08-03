@@ -337,7 +337,7 @@ I think this would be neutral to bullish for US equities, but the dollar and the
 Recent returns in the S&P 500 (SPX) have been largely driven by the largest tech megacaps. Even small changes in the assumptions about their business performance could result in a significant drop in the SPX. Additionally, the yield curve remains inverted, which historically precedes a downturn in stocks.
 The Fed is likely to cut interest rates, above current expectations. Dollar might weaken slightly. However, this weakening will be less pronounced than in previous similar rate drops due to the lack of better alternatives to the US dollar.
 
-Overall reccomend against the short-all strategy
+Reccomendation: against the short-all strategy
 
 """)
 
