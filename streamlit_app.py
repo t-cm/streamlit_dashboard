@@ -281,6 +281,8 @@ I would argue that expected actual return conditioned on the theoretical return 
 
 """)
 
+st.markdown("---")
+
 # 4. Why did the short-all work?
 st.markdown("### 4. When does it work?")
 
@@ -304,30 +306,40 @@ Were either of those assumptions to break...I think this becomes much much more 
 # 4.1 2022
 st.text("")
 st.markdown("##### 2022")
+
 st.write("""
-Rates go up because there was a lot of inflation from covid. Partly because there was a record amount of money printed, partly because consumer spending went way down and then way back up, and partly because the companies cut production and there was a rush to turn back on production capacity. 
+Rates went up because there was a lot of inflation from covid. Partly because there was a record amount of money printed, partly because consumer spending went way down and then way back up, and partly because the companies cut production and there was a rush to turn back on production capacity. 
 Rates were sitting sub-zero in many developed economies, and sub 1% in the US. The Fed raised rates to counteract inflation. This became obvious in late 2021, I’m not sure why stocks didn’t drop more quickly. Bonds and Stocks both fall, which leads to okay returns for the short portfolio. 
-I'm suprised markets did not adjust downwards earlier.  
-""")         
 
-st.markdown("---")
-
-st.text("")
-st.markdown("##### 2002-2003")
-st.write("""
-Dollars (and stocks) go down due to combination of corporate scandals (Enron and WorldCom), account defecits, and emerging markets like China being more appealing
-""")         
-
-st.text("")
-st.markdown("##### H1 1994")
-st.write("""
-My understanding of what happened here is that a lot of insitutions had made money trading bonds the last 15 years...and were all levered long bonds" 
+I'm suprised that stocks and bonds did not go down more at the end of 2021. I would expect to see vol. in the commodities and an increase in the cost of manufacturing inputs to have been priced in earlier.  
 """)         
 st.markdown("---")
+
 # 5. Predictions for 2024
-st.markdown("### 5. Predictions for 2024")
-st.write("Based on our analysis, here are some predictions for market trends and potential strategies for 2024.")
+st.markdown("### 5. Predictions for next 18 months")
 
+st.write("""
+I think there are two possible catalysts that could happen, and if I had more conviction around would recommend going short.
+
+**Tariffs**
+         
+The US in view of new geopolitical tensions decides it needs to strengthen specific parts of its defense and manufacturing sectors. They decide to use selective tariffs…Trump is promoting a 10% universal import tariff on all imports and a 60% tariff on China goods and while this is probably negotiation posturing, odds of protectionism scenarios are definitely rising in the US. 
+The first order effect is that a surge in tariffs increases prices for buyers and related producers. An increase in pricing across multiple key consumption areas has a good chance of increasing inflation.
+The second order effect, which is much more interesting, is that countries may create segregated pools of liquidity. Consider a Chinese electric car company, with no US investment or US based revenue, which wants to open up a factory in Mexico. They may choose to withdraw their investment in Mexico over fears that the US, in the future, will pressure Mexico to apply the same tariffs. The Chinese EV company might choose to invest in Vietnam instead, even if the underlying economics of the factory are better in Mexico.
+
+**Asset Seizure**
+         
+The US has already flirted with this during the Ukraine war. Were there another global conflict, it wouldn't be that surprising if the US decided that all Chinese and Russian owned real estate is now the property of the DOJ, or that the US is selectively defaulting on foreign owned bonds. 
+I think this would be neutral to bullish for US equities, but the dollar and the 10Y treasuries are likely to get hammered.
+
+**Most Likely Scenario**
+         
+Recent returns in the S&P 500 (SPX) have been largely driven by the largest tech megacaps. Even small changes in the assumptions about their business performance could result in a significant drop in the SPX. Additionally, the yield curve remains inverted, which historically precedes a downturn in stocks.
+The Fed is likely to cut interest rates, above current expectations. Dollar might weaken slightly. However, this weakening will be less pronounced than in previous similar rate drops due to the lack of better alternatives to the US dollar.
+
+Overall reccomend against the short-all strategy
+
+""")
 
 # ###
 # "CHART 1"
