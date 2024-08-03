@@ -5,6 +5,297 @@ import plotly.graph_objects as go
 import plotly.express as px
 from window_functions import calculate_windowed_returns, calculate_windowed_annualized_returns
 
+
+def aggregate_daily_returns_to_annualized_returns(df, lookback_window=252, num_months=1):
+
+    #WINDOW YEARLY RETURNS
+    returns_to_aggregate=['RET_SPX_d', 'RET_10Y_d', 'RET_DXY_d', 'RET_FFR_d', 'RET_SHORT_SPX_d', 'RET_SHORT_10Y_d', 'RET_SHORT_DXY_d', 'ER_SPX_d', 'ER_10Y_d', 'ER_DXY_d',
+        'ER_SHORT_SPX_d', 'ER_SHORT_10Y_d', 'ER_SHORT_DXY_d','ER_RP_Portfolio_LONG', 'ER_RP_Portfolio_SHORT','RET_RP_Portfolio_LONG', 'RET_RP_Portfolio_SHORT',
+        'ER_TANGENCY_Portfolio_SHORT', 'RET_TANGENCY_Portfolio_SHORT','RET_RPLONGSHORT_DELTA', 'RET_IDEALSHORT_DELTA']
+
+
+    for _column in returns_to_aggregate:
+        agg_colum_name='IRR_'+_column
+        df[agg_colum_name]=calculate_windowed_annualized_returns(df[_column], lookback_window)
+
+    
+
+    print(num_months)
+
+    #AGG YEAR SUMMARY
+    windowed_columns = [col for col in df.columns if "IRR_" in col]
+    weights_columns=['RP_LONG_SPX', 'RP_LONG_10Y', 'RP_SHORT_SPX','RP_SHORT_10Y', 'RP_SHORT_DXY']
+    df['Counter'] = 1  # Add a counter column
+
+    agg_dict = {
+        **{col: 'mean' for col in weights_columns},
+        **{col: 'last' for col in windowed_columns},
+        **{col: 'count' for col in ['Counter']}
+    }
+
+    # Resample and aggregate data
+    sample_frequency=f'{num_months}M'
+    monthly_df = df.resample(sample_frequency).agg(agg_dict)
+    monthly_df = monthly_df.dropna(how='any')
+
+    # # Prepare data for plotting
+    monthly_df['Decade'] = (monthly_df.index.year // 10) * 10
+    monthly_df['Month'] = (monthly_df.index.month)
+
+    return monthly_df
+
+
+def create_decade_scatter_plot(
+    PLOT_FREQ_MONTHS=1, 
+    COLUMN_TO_PLOT='IRR_ER_RP_Portfolio_SHORT', 
+    WEIGHTS_TO_HOVER=['RP_SHORT_SPX','RP_SHORT_10Y','RP_SHORT_DXY'], 
+    MARKETS_TO_HOVER=['IRR_ER_SPX_d','IRR_ER_10Y_d','IRR_ER_DXY_d'], 
+    START_YEAR=1970,
+    IRR_PERIOD_OPTIONS=[1, 3, 6, 12]  # List of IRR period options in months
+):
+    def create_trace(irr_period_months):
+        lookback_window = 24 * irr_period_months
+
+        df = aggregate_daily_returns_to_annualized_returns(pd.read_pickle("./Data/processed_data.pkl"), lookback_window, PLOT_FREQ_MONTHS)
+
+        # Filter data based on START_YEAR
+        filtered_df = df[df.index.year > START_YEAR]
+
+        # Add Decade column if not present
+        if 'Decade' not in filtered_df.columns:
+            filtered_df['Decade'] = (filtered_df.index.year // 10) * 10
+
+        assert(COLUMN_TO_PLOT in list(filtered_df.columns)), "COLUMN NOT FOUND"
+
+        # Get unique decades and create color map
+        unique_decades = sorted(filtered_df['Decade'].unique())
+        colors = px.colors.qualitative.Plotly
+        color_map = dict(zip(unique_decades, colors[:len(unique_decades)]))
+
+        traces = []
+
+        for i, decade in enumerate(unique_decades):
+            decade_data = filtered_df[filtered_df['Decade'] == decade]
+            
+            # Add jitter to y-values
+            jitter = np.random.uniform(-0.2, 0.2, len(decade_data))
+            
+            trace = go.Scatter(
+                x=decade_data[COLUMN_TO_PLOT],
+                y=[i] * len(decade_data) + jitter,
+                mode='markers',
+                name=f"{decade}'s",
+                marker=dict(
+                    size=6,
+                    color=color_map[decade],
+                    line=dict(width=1, color='DarkSlateGrey')
+                ),
+                text=[f"Date Range: {(date - pd.DateOffset(days=int(lookback_window/252*365))).strftime('%Y-%m')} to {date.strftime('%Y-%m')}<br>"
+                      f"Annualized ER: {return_:.2%}<br>"
+                      f"Total ER. {return_ * (lookback_window / 252):.2%}<br>"
+                      f"Weights:<br>"
+                      f" SPX: {-weights_[WEIGHTS_TO_HOVER[0]]:.2%}<br>"
+                      f" 10Y: {-weights_[WEIGHTS_TO_HOVER[1]]:.2%}<br>"
+                      f" DXY: {-weights_[WEIGHTS_TO_HOVER[2]]:.2%}<br>"
+                      f"Market AR:<br>"
+                      f" SPX: {markets_[MARKETS_TO_HOVER[0]]:.2%}<br>"
+                      f" 10Y: {markets_[MARKETS_TO_HOVER[1]]:.2%}<br>"
+                      f" DXY: {markets_[MARKETS_TO_HOVER[2]]:.2%}"
+                      for date, return_, weights_, markets_ in zip(decade_data.index, 
+                                                                   decade_data[COLUMN_TO_PLOT],
+                                                                   decade_data[WEIGHTS_TO_HOVER].to_dict('records'),
+                                                                   decade_data[MARKETS_TO_HOVER].to_dict('records'))],
+                hoverinfo='text'
+            )
+            traces.append(trace)
+
+        return traces
+
+    # Create figure with dropdown menu
+    fig = go.Figure()
+
+    # Add traces for each IRR period option
+    for irr_period in IRR_PERIOD_OPTIONS:
+        traces = create_trace(irr_period)
+        for trace in traces:
+            fig.add_trace(trace)
+
+    # Get unique decades from the first trace
+    unique_decades = sorted(set(trace.name.replace("'s", "") for trace in fig.data))
+
+    # Create and add dropdown menu
+    dropdown_buttons = []
+    for i, irr_period in enumerate(IRR_PERIOD_OPTIONS):
+        visible = [False] * len(fig.data)
+        visible[i*len(fig.data)//len(IRR_PERIOD_OPTIONS):(i+1)*len(fig.data)//len(IRR_PERIOD_OPTIONS)] = [True] * (len(fig.data)//len(IRR_PERIOD_OPTIONS))
+        dropdown_buttons.append(
+            dict(
+                method='update',
+                label=f'{irr_period} Month(s)',
+                args=[{'visible': visible}]
+            )
+        )
+
+    fig.update_layout(
+        updatemenus=[
+            dict(
+                buttons=dropdown_buttons,
+                direction="down",
+                pad={"r": 10, "t": 10},
+                showactive=True,
+                x=0.1,
+                xanchor="left",
+                y=1.1,
+                yanchor="top"
+            ),
+        ]
+    )
+
+    # Set initial visibility
+    fig.data[0].visible = True
+    for i in range(1, len(fig.data) // len(IRR_PERIOD_OPTIONS)):
+        fig.data[i].visible = True
+
+    # Add a vertical line at x=0
+    fig.add_shape(
+        type="line",
+        x0=0, x1=0, y0=-0.5, y1=len(unique_decades) - 0.5,
+        line=dict(color="Black", width=1, dash="dot"),
+    )
+
+    # Update the layout
+    fig.update_layout(
+        title={
+            'text': 'Portfolio Scatter Returns',
+            'y':0.95,
+            'x':0.5,
+            'xanchor': 'center',
+            'yanchor': 'top',
+            'font': dict(size=24)
+        },
+        xaxis_title='Excess Return - Annualized',
+        yaxis_title='Decade',
+        xaxis=dict(tickformat='.0%', zeroline=False),
+        yaxis=dict(
+            tickmode='array',
+            tickvals=list(range(len(unique_decades))),
+            ticktext=[f"{decade}'s" for decade in unique_decades]
+        ),
+        plot_bgcolor='white',
+        hovermode='closest',
+        width=1000,
+        height=600,
+        margin=dict(t=100, l=80, r=40, b=60),
+        showlegend=True,
+        legend_title_text='Decade'
+    )
+
+    return fig
+
+def create_returns_plot(df, select_col='RET_RP_Portfolio_SHORT', lookback_options=[3, 6, 12, 24]):
+
+    
+    fig = go.Figure()
+    
+    colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728', '#9467bd', '#8c564b', '#e377c2', '#7f7f7f', '#bcbd22', '#17becf']
+    
+    for i, lookback in enumerate(lookback_options):
+        lookback_window = 23 * lookback
+        new_col = 'IRR_' + select_col
+        df[new_col] = calculate_windowed_returns(df[select_col], lookback_window)
+        
+        fig.add_trace(go.Scatter(
+            x=df.index,
+            y=df[new_col],
+            mode='lines',
+            name=f'{lookback} Month Lookback',
+            visible=(lookback == lookback_options[0]),
+            line=dict(color=colors[i % len(colors)], width=2),
+            hovertemplate='%{x|%Y-%m-%d}<br>Return: %{y:.2%}<extra></extra>'
+        ))
+    
+    dropdown_buttons = []
+    for i, lookback in enumerate(lookback_options):
+        visible = [False] * len(fig.data)
+        visible[i] = True
+        dropdown_buttons.append(
+            dict(
+                method='update',
+                label=f'{lookback} Month Lookback',
+                args=[{'visible': visible},
+                      {'title': f'{select_col} - {lookback} Month Lookback'}]
+            )
+        )
+    
+    fig.update_layout(
+        updatemenus=[
+            dict(
+                buttons=dropdown_buttons,
+                direction="down",
+                pad={"r": 10, "t": 10},
+                showactive=True,
+                x=0.9,  # Move to the right
+                xanchor="left",
+                y=1.15,
+                yanchor="top",
+                bgcolor='rgba(255, 255, 255, 0.7)',
+                bordercolor='rgba(0, 0, 0, 0.5)',
+                font=dict(size=12)
+            ),
+        ],
+        title=dict(
+            text=f'{select_col} - {lookback_options[0]} Month Lookback',
+            font=dict(size=24, color='#333'),
+            x=0.5,
+            xanchor='center'
+        ),
+        xaxis=dict(
+            title='Date',
+            title_font=dict(size=16),
+            tickfont=dict(size=12),
+            showgrid=True,
+            gridcolor='rgba(0, 0, 0, 0.1)'
+        ),
+        yaxis=dict(
+            title='Annualized Returns',
+            title_font=dict(size=16),
+            tickfont=dict(size=12),
+            tickformat='.1%',
+            showgrid=True,
+            gridcolor='rgba(0, 0, 0, 0.1)',
+            zeroline=True,
+            zerolinecolor='rgba(0, 0, 0, 0.2)',
+            zerolinewidth=2
+        ),
+        hovermode='x unified',
+        paper_bgcolor='white',
+        plot_bgcolor='rgba(240, 240, 240, 0.5)',
+        legend=dict(
+            orientation='h',
+            yanchor='bottom',
+            y=1.02,
+            xanchor='right',
+            x=1,
+            bgcolor='rgba(255, 255, 255, 0.7)',
+            bordercolor='rgba(0, 0, 0, 0.5)'
+        ),
+        margin=dict(l=80, r=40, t=100, b=60)
+    )
+    
+    fig.update_xaxes(
+        rangeslider_visible=True,
+        rangeselector=dict(
+            buttons=list([
+                dict(count=1, label="1y", step="year", stepmode="backward"),
+                dict(count=5, label="5y", step="year", stepmode="backward"),
+                dict(count=20, label="20y", step="year", stepmode="backward"),
+                dict(step="all")
+            ])
+        )
+    )
+    
+    return fig
+
 def plot_rolling_excess_returns(df, DXY_LEVERAGE=5):
 
     colors = px.colors.qualitative.Plotly
