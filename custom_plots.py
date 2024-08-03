@@ -24,7 +24,7 @@ def aggregate_daily_returns_to_annualized_returns(df, lookback_window=252, num_m
 
     #AGG YEAR SUMMARY
     windowed_columns = [col for col in df.columns if "IRR_" in col]
-    weights_columns=['RP_LONG_SPX', 'RP_LONG_10Y', 'RP_SHORT_SPX','RP_SHORT_10Y', 'RP_SHORT_DXY']
+    weights_columns=['RP_LONG_SPX', 'RP_LONG_10Y', 'RP_SHORT_SPX','RP_SHORT_10Y', 'RP_SHORT_DXY', 'IDEAL_SHORT_SPX', 'IDEAL_SHORT_10Y', 'IDEAL_SHORT_DXY']
     df['Counter'] = 1  # Add a counter column
 
     agg_dict = {
@@ -208,7 +208,7 @@ def create_returns_plot(df, select_col='RET_RP_Portfolio_SHORT', lookback_option
             x=df.index,
             y=df[new_col],
             mode='lines',
-            name=f'{lookback} Month Lookback',
+            name=f'{lookback} Month',
             visible=(lookback == lookback_options[0]),
             line=dict(color=colors[i % len(colors)], width=2),
             hovertemplate='%{x|%Y-%m-%d}<br>Return: %{y:.2%}<extra></extra>'
@@ -223,7 +223,7 @@ def create_returns_plot(df, select_col='RET_RP_Portfolio_SHORT', lookback_option
                 method='update',
                 label=f'{lookback} Month Lookback',
                 args=[{'visible': visible},
-                      {'title': f'{select_col} - {lookback} Month Lookback'}]
+                      {'title': f'{select_col} - {lookback} Month'}]
             )
         )
     
@@ -244,7 +244,7 @@ def create_returns_plot(df, select_col='RET_RP_Portfolio_SHORT', lookback_option
             ),
         ],
         title=dict(
-            text=f'{select_col} - {lookback_options[0]} Month Lookback',
+            text=f'{select_col} - {lookback_options[0]} Month',
             font=dict(size=24, color='#333'),
             x=0.5,
             xanchor='center'
@@ -257,7 +257,7 @@ def create_returns_plot(df, select_col='RET_RP_Portfolio_SHORT', lookback_option
             gridcolor='rgba(0, 0, 0, 0.1)'
         ),
         yaxis=dict(
-            title='Annualized Returns',
+            title='Total Excess Returns',
             title_font=dict(size=16),
             tickfont=dict(size=12),
             tickformat='.1%',
@@ -306,7 +306,7 @@ def plot_rolling_excess_returns(df, DXY_LEVERAGE=5):
     DXY_LEVERAGE=5
 
     colors = px.colors.qualitative.Plotly
-    df['ER_DXY_d']=df['ER_DXY_d']/DXY_LEVERAGE
+    df['RET_DXY_d']=df['RET_DXY_d']/DXY_LEVERAGE
 
     # List of assets and windows
     assets = ['SPX', '10Y', 'DXY']
@@ -317,7 +317,7 @@ def plot_rolling_excess_returns(df, DXY_LEVERAGE=5):
     for asset in assets:
         for window in windows:
             col_name = f'ROLL_{asset}_IRR_{window}d'
-            df[col_name] = calculate_windowed_annualized_returns(df[f'ER_{asset}_d'], window=window)
+            df[col_name] = calculate_windowed_annualized_returns(df[f'RET_{asset}_d'], window=window)
 
     # Create the plot
     fig = go.Figure()
@@ -396,7 +396,7 @@ def plot_rolling_excess_returns(df, DXY_LEVERAGE=5):
                 buttons=list([
                     dict(
                         args=[{"y": [df[f'ROLL_{asset}_IRR_{window}d'] for asset in assets]},
-                            {"title": f"Rolling Excess Returns ({label})"}],
+                            {"title": f"Rolling Returns ({label})"}],
                         label=label,
                         method="update"
                     ) for window, label in zip(windows, window_labels)
@@ -413,7 +413,6 @@ def plot_rolling_excess_returns(df, DXY_LEVERAGE=5):
     )
 
     return fig
-
 
 def plot_yield_comparison(df):
 
@@ -530,8 +529,8 @@ def plot_stock_bond_correlation(df):
     # Calculate yearly returns
     df['Year'] = df.index.year
     yearly_returns = df.groupby('Year').agg({
-        'ER_SPX_d': lambda x: (1 + x).prod() - 1,
-        'ER_10Y_d': lambda x: (1 + x).prod() - 1
+        'RET_SPX_d': lambda x: (1 + x).prod() - 1,
+        'RET_10Y_d': lambda x: (1 + x).prod() - 1
     }) * 100  # Convert to percentage
 
     # Create the grouped bar chart
@@ -540,14 +539,14 @@ def plot_stock_bond_correlation(df):
     # Add 10Y Treasury bars
     fig.add_trace(go.Bar(
         x=yearly_returns.index,
-        y=yearly_returns['ER_10Y_d'],
+        y=yearly_returns['RET_10Y_d'],
         name='10Y Treasury',
         hovertemplate='Year: %{x}<br>10Y Treasury: %{y:.2f}%<extra></extra>',
         marker=dict(
-            color=['#FF9999' if y < 0 else '#FF0000' for y in yearly_returns['ER_10Y_d']],
+            color=['#FF9999' if y < 0 else '#FF0000' for y in yearly_returns['RET_10Y_d']],
             line=dict(
-                color=['#FF3333' if y < 0 else '#FF0000' for y in yearly_returns['ER_10Y_d']],
-                width=[2 if y < 0 else 0 for y in yearly_returns['ER_10Y_d']]
+                color=['#FF3333' if y < 0 else '#FF0000' for y in yearly_returns['RET_10Y_d']],
+                width=[2 if y < 0 else 0 for y in yearly_returns['RET_10Y_d']]
             ),
         )
     ))
@@ -555,23 +554,23 @@ def plot_stock_bond_correlation(df):
     # Add SPX bars
     fig.add_trace(go.Bar(
         x=yearly_returns.index,
-        y=yearly_returns['ER_SPX_d'],
+        y=yearly_returns['RET_SPX_d'],
         name='S&P500',
         hovertemplate='Year: %{x}<br>S&P500: %{y:.2f}%<extra></extra>',
         marker=dict(
-            color=['#9999FF' if y < 0 else '#0000FF' for y in yearly_returns['ER_SPX_d']],
+            color=['#9999FF' if y < 0 else '#0000FF' for y in yearly_returns['RET_SPX_d']],
             line=dict(
-                color=['#3333FF' if y < 0 else '#0000FF' for y in yearly_returns['ER_SPX_d']],
-                width=[2 if y < 0 else 0 for y in yearly_returns['ER_SPX_d']]
+                color=['#3333FF' if y < 0 else '#0000FF' for y in yearly_returns['RET_SPX_d']],
+                width=[2 if y < 0 else 0 for y in yearly_returns['RET_SPX_d']]
             ),
         )
     ))
 
     # Update the layout
     fig.update_layout(
-        title='Yearly Excess Returns: SPX vs 10Y Treasury',
+        title='Annual Returns: SPX vs 10Y Treasury',
         xaxis_title='Year',
-        yaxis_title='Excess Returns (%)',
+        yaxis_title='Annual Returns (%)',
         yaxis=dict(tickformat='.2f', ticksuffix='%'),  # Format y-axis ticks as percentages
         barmode='group',
         bargap=0.5,  # Add gap between groups
@@ -612,18 +611,18 @@ def plot_stock_bond_correlation(df):
                 buttons=list([
                     dict(label="All",
                         method="update",
-                        args=[{"y": [yearly_returns['ER_10Y_d'], yearly_returns['ER_SPX_d']]},
-                            {"title": "Yearly Excess Returns: SPX vs 10Y Treasury"}]),
+                        args=[{"y": [yearly_returns['RET_10Y_d'], yearly_returns['RET_SPX_d']]},
+                            {"title": "Annual Returns: SPX vs 10Y Treasury"}]),
                     dict(label="Positive Only",
                         method="update",
-                        args=[{"y": [[y if y >= 0 else None for y in yearly_returns['ER_10Y_d']],
-                                    [y if y >= 0 else None for y in yearly_returns['ER_SPX_d']]]},
-                            {"title": "Yearly Excess Returns: SPX vs 10Y Treasury (Positive Only)"}]),
+                        args=[{"y": [[y if y >= 0 else None for y in yearly_returns['RET_10Y_d']],
+                                    [y if y >= 0 else None for y in yearly_returns['RET_SPX_d']]]},
+                            {"title": "Annuals Returns: SPX vs 10Y Treasury (Positive Only)"}]),
                     dict(label="Negative Only",
                         method="update",
-                        args=[{"y": [[y if y < 0 else None for y in yearly_returns['ER_10Y_d']],
-                                    [y if y < 0 else None for y in yearly_returns['ER_SPX_d']]]},
-                            {"title": "Yearly Excess Returns: SPX vs 10Y Treasury (Negative Only)"}]),
+                        args=[{"y": [[y if y < 0 else None for y in yearly_returns['RET_10Y_d']],
+                                    [y if y < 0 else None for y in yearly_returns['RET_SPX_d']]]},
+                            {"title": "Annual Returns: SPX vs 10Y Treasury (Negative Only)"}]),
                 ]),
             )
         ]

@@ -48,18 +48,13 @@ toc = """
 2. [**Portfolio Construction**](#portfolio-construction)
    1. [Asset Selection](#asset-selection)
    2. [Assumptions](#assumptions)
-   3. [Excess vs Total Returns](#excess-vs-total-returns)
-   4. [Asset Returns](#asset-returns)
-   5. [Risk Parity Weights](#risk-parity-weights)
-   6. [Max Sharpe](#max-sharpe)
+   3. [Asset Returns](#asset-returns)
+   4. [Risk Parity Weights](#risk-parity-weights)
 3. [**Backtest**](#backtest)
    1. [When did short-all work?](#when-did-short-all-work)
-   2. [Optimal Weights](#optimal-weights)
-   3. [Exogenous risks](#exogenous-risks)
-   4. [Counterfactuals](#counterfactuals)
+   2. [Exogenous risks](#exogenous-risks)
 4. [**Why did the short-all work?**](#why-did-the-short-all-work)
-   1. [2022](#2022)
-5. [**Predictions for 2024**](#predictions-for-2024)
+5. [**Predictions**](#predictions-for-2024)
 """
 st.markdown(toc)
 st.markdown("---")
@@ -68,17 +63,19 @@ st.markdown("---")
 # 1. Overview
 st.markdown("### 1. Overview")
 st.write("Though the strategy of short, some combination of stocks, bonds, and dollars has generated excess returns infrequently, there have been periods where it works. This doc analyzes when it managed to work, where it worked, and what changes would need to occur that it might work again.")
+st.text("")
 
 # 1.1 Market Cycles
-st.markdown("##### Market Cycles")
+st.markdown("#### Market Cycles")
 st.write("Attempts to uncover a pattern of rise and fall - to time the ups and the down of the market - have produced a colorful history.")
 st.markdown("---")
 get_images()
 st.markdown("---")
 st.write("But at least in the U.S. the really obvious thing has been to passively go long stocks and bonds. The SP500 hits a new all time high on ~7% of trading days, and half of the time it trades within 6% of the ATH. It’s inductively sound (and is often accurate) to think that the general trends of the past will continue. And indeed, going long stocks and bonds at risk parity has been an efficacious strategy.")
+st.text("")
 
 # 1.2 Short-All Performance
-st.markdown("##### Short-All Performance")
+st.markdown("#### Short-All Performance")
 st.write("What happens when we go short? The assumptions, portfolio weights, and caveats are covered later in the doc...but the chart below gives an overview of how the trade performed.")
 st.write("The chart shows total returns of a naive short-all strategy  - how much the short investor made vs. hiding the cash under a mattress - for each calendar year since 1971.")
 st.write("You can interact with the chart hover over the bubble to see the portfolio weights, and how the underlying assets performed that year. The bigger the bubble the better the short did vs the long.")
@@ -98,11 +95,12 @@ df = get_data()
 fig_decade = create_decade_scatter_plot()
 st.plotly_chart(fig_decade)
 st.markdown("---")
+st.text("")
 
 # 1.3 Something New
-st.text("")
-st.markdown("##### Something New")
-st.write("This section introduces a novel concept or strategy that has emerged in recent market analysis.")
+st.markdown("#### Something New")
+st.write("I get into this in more detail in the Counterfactual section…but I think there are some core, potentially unexamined, assumptions which make the approach of long stocks+bonds work. I don’t think these assumptions have been challenged much in the last 100 years.") 
+st.write("The place where the short trade probably performs the best is where one can foresee some total break with convention or expectation. The trade in its ideal form is therefore future looking and ought not be inferred from past data.") 
 
 st.markdown("---")
 
@@ -112,32 +110,96 @@ st.markdown("### 2. Portfolio Construction")
 # 2.1 Asset Selection
 st.text("")
 st.markdown("##### Asset Selection")
-st.write("The process of choosing which assets to include in a portfolio based on various criteria such as risk, return, and correlation.")
+'''
+The short-everything strategy is a portfolio with weighted short positions on the S&P 500, 10-year Treasuries, and leveraged Dollar Index (DXY).
+
+The first step is to figure out the returns for each of these and the returns on cash held at the risk free rate. FFR is pulled directly FRED. SPX is adjusted to include dividends. 10Y bond prices are estimated -modified_duration_daily*delta_yield_daily and we add back in the yield earned. After data wrangling we end up with the daily absolute and excess returns for each asset.
+'''
+st.write("Here's summary of the yields. Red sections are where the yields are inverted (FFR > 10Y)")
+
+st.markdown("---")
+df = get_data()  
+fig_yeild = plot_yield_comparison(df)
+st.plotly_chart(fig_yeild)
+st.markdown("---")
+
+st.write("We can also get a sense of how stocks and bonds move by looking at the each calendar year")
+st.markdown("---")
+df = get_data()  
+fig_yeild = plot_stock_bond_correlation(df)
+st.plotly_chart(fig_yeild)
+st.markdown("---")
+
 
 # 2.2 Assumptions
 st.text("")
 st.markdown("##### Assumptions")
-st.write("Key assumptions made in the portfolio construction process, including expected returns, volatility, and correlation estimates.")
+st.write("""
+Some assumptions..
+                
+When calculating returns, the short positions in stocks and bonds are assumed to be 100% short (i.e., the exact inverse of a long position) without any additional leverage. While short must pay (are negative) dividends in the case of stock and yield in the case of bonds. 
 
-# 2.3 Excess vs Total Returns
-st.text("")
-st.markdown("##### Excess vs Total Returns")
-st.write("A comparison of excess returns (returns above a benchmark) and total returns, and their implications for portfolio performance.")
+Bonds are always rolled to keep constant 10y maturities.
+         
+Borrowing cost, exchange fees, and slippage are assumed to always be de-minimis.
 
-# 2.4 Asset Returns
+DXY positions are done with 5x leverage. Unlevered DXY postions don't have compelling excess returns. 
+         
+Data before the end of bretton woods in 1971, should be viewed cautiously
+""")
+
+# 2.3 Asset Returns
 st.text("")
+st.write("""
+Asset Overview: How have stocks, bonds, levered DXY, and cash have performed since approximately 1971? The chart below shows the rolling (non-excess) returns of each.
+
+Note that it’s very uncommon for all three to be negative. Where they are are areas of interest. 2022 briefly, 1987 post flash crash, etc.
+""")
 st.markdown("##### Asset Returns")
-st.write("An analysis of the historical and expected returns for different asset classes in the portfolio.")
+st.markdown("---")
+df = get_data()  
+fig_er = plot_rolling_excess_returns(df)
+st.plotly_chart(fig_er)
+st.markdown("---")
 
 # 2.5 Risk Parity Weights
 st.text("")
 st.markdown("##### Risk Parity Weights")
-st.write("Explanation of the risk parity approach to portfolio weighting and its implementation in this strategy.")
+st.write("""
+        
 
-# 2.6 Max Sharpe
-st.text("")
-st.markdown("##### Max Sharpe")
-st.write("Discussion on maximizing the Sharpe ratio for optimal risk-adjusted returns in portfolio construction.")
+We want to find the best portfolio among:
+
+
+1. **Cash**: Earn the "risk-free" rate
+2. **Long**: long some weighting of stocks and bonds
+3. **Short**: short some weighting of stocks, bonds, and leveraged USD
+
+
+To build a short-only portfolio we will choose (w_spx, w_10y, w_dxy) with constraints (wi in [0,-1]), sum(wi=-1). Further, because we are using a 5x levered DXY index, we will restrict w_dxy to a max of 1/5. This means the portfolio can have up between (0,-1) exposure to the dollar. 
+
+
+To build a long-only portfolio we will choose (w_spx, w_10y)  (wi in [0,1]), sum(wi=1). In the long portfolio we are already implicitly long dollar (the assets are denominated in dollar and the value of the stocks and bonds is the expectation of future dollars so I don't see a need to place bet on the DYX. Without DYX the long portfolios we make will be somewhat similar to familiar 60/40 strategies and are therefore easy to interpret.
+
+
+For the short and long only portfolios we will consider how they perform versus cash - the excess returns…and versus each other. 
+
+
+To calculate weights (w_spx, w_10y, w_dxy) we first calculate the covariance matrix of the excess returns of each asset. In the code these are the “ER_SPX_d” type columns. In most of the charts I use a 252 day (~1 year) lookback window - i.e the cov. Matrix is based on last year of daily vol. Data. Weights are forward looking and recomputed daily. 
+
+
+Once we have the cov. matrix, we calculate risk parity weights with the above constraints, for both the long and short portfolio.”
+
+
+Risk parity gives us a realistic benchmark for what a good, but non-proprietary portfolio would look like.
+          
+A big reason risk parity makes a "good" portfolio is that volatility has autoregressive structure. It's outside of the scope of this doc, but we could improve upon the naive implementation…(for example by having better models for future vol like with a GARCH model). Because of this I also calculated weights for the “best” portfolio. The best portfolio is the set of fix weights w* with the same constraints (wi in [0,-1]), sum(wi=-1),  w_dxy<⅕) that maximize the sharpe ratio over that window of time. In MPT this is just the actual tangency portfolio. The ideal weights are backwards looking…it’s what a PM with the same constraints, able to make one selection of weights, but with perfect information would pick. 
+
+
+The weights of the realistic best portfolio are somewhere between the risk parity weights and the ideal weights. 
+ 
+         
+""")
 
 st.markdown("---")
 
@@ -147,35 +209,121 @@ st.markdown("### 3. Backtest")
 # 3.1 When did short-all work?
 st.text("")
 st.markdown("##### When did short-all work?")
-st.write("Analysis of historical periods when the short-all strategy was particularly effective, including market conditions and economic factors.")
 
-# 3.2 Optimal Weights
-st.text("")
-st.markdown("##### Optimal Weights")
-st.write("Determination of the ideal asset allocation weights to maximize portfolio performance based on historical data.")
+st.text("Below are some different visalizations of well the trade worked")
+
+st.text("Perf Case Performance")
+st.markdown("---")
+df = get_data()  
+fig_ert = create_returns_plot(df, select_col='ER_TANGENCY_Portfolio_SHORT', lookback_options=[6, 12, 24])
+st.plotly_chart(fig_ert)
+st.markdown("---")
+
+st.text("Risk Parity Case Performance")
+st.markdown("---")
+df = get_data()  
+fig_erp = create_returns_plot(df, select_col='ER_RP_Portfolio_SHORT', lookback_options=[6, 12, 24])
+st.plotly_chart(fig_erp)
+st.markdown("---")
+
+st.text("When does the ideal short outperform the long RP?")
+st.markdown("---")
+df = get_data()  
+fig_idelta = create_returns_plot(df, select_col='RET_IDEALSHORT_DELTA', lookback_options=[6, 12, 24])
+st.plotly_chart(fig_idelta)
+st.markdown("---")
+
+st.text("When does the short RP outperform the long RP?")
+st.markdown("---")
+df = get_data()  
+fig_rpdelta = create_returns_plot(df, select_col='RET_RPLONGSHORT_DELTA', lookback_options=[6, 12, 24])
+st.plotly_chart(fig_rpdelta)
+st.markdown("---")
+
+st.text("Risk Parity Bubble Plot")
+st.markdown("---")
+fig_b=create_decade_scatter_plot(
+    PLOT_FREQ_MONTHS=1, 
+    COLUMN_TO_PLOT='IRR_ER_RP_Portfolio_SHORT', 
+    WEIGHTS_TO_HOVER=['RP_SHORT_SPX','RP_SHORT_10Y','RP_SHORT_DXY'], 
+    MARKETS_TO_HOVER=['IRR_ER_SPX_d','IRR_ER_10Y_d','IRR_ER_DXY_d'], 
+    START_YEAR=1971,
+    IRR_PERIOD_OPTIONS=[1, 3, 6, 12]  # List of IRR period options in months
+)
+
+st.plotly_chart(fig_b)
+st.markdown("---")
 
 # 3.3 Exogenous risks
 st.text("")
 st.markdown("##### Exogenous risks")
-st.write("Examination of external factors and risks that could impact the performance of the short-all strategy.")
+st.write("""
+One important question asked in the case that I haven’t touched on is “ What are the characteristics of the payoff function?”
 
-# 3.4 Counterfactuals
-st.text("")
-st.markdown("##### Counterfactuals")
-st.write("Exploration of alternative scenarios and their potential impacts on the strategy's performance.")
+The very short answer is that the short portfolio is asymmetric in the wrong direction! It loses most of the time, and the longer you put on the trade the more likely it is to lose money. Theoretical upside is capped at a 2x, so-called infinite downside and so on.
 
-st.markdown("---")
+But there’s another bigger problem, which is the better my theoretical returns are the less likely I am to actually get paid. As I approach a 2x return, the probability that I actually get that money approaches 0. 
+
+There are a lot of exogenous risks  that can mess up the trade. Even if these are typically small risks the better I expect my trade to do in theory the more I should expect to encounter these risks in practice. 
+
+> The exchange halts trading and I can’t exit the position
+
+> The clearing house becomes illiquid and unwinds my trade
+
+> The government steps in and bans short selling 
+
+> My counterparties become illiquid 
+
+
+Were there a crash in stocks, bonds, and dollars big enough to generate short returns in excess of 50%, maybe I’m walking away with 30% if I’m lucky.
+
+I would argue that expected actual return conditioned on the theoretical return becomes negative when the theoretical return exceeds 65%. This happens all the time in crypto by the way ... .one might think it was a good idea to short SOL at the peak in 2021. But the only two places to go short were FTX and MangoMarkets. Both went bust and you ended up way down, despite 50%+ theoretical returns.
+
+""")
 
 # 4. Why did the short-all work?
-st.markdown("### 4. Why did the short-all work?")
+st.markdown("### 4. When does it work?")
 
+
+st.write("""
+There's no natural law that says going long stocks and bonds will produce 5% returns per year.  I think there are two things that underpin why the risk-parity long strategy has worked so well and so consistently . 
+
+One, Anglo-america has been on the winning side of every major international conflict since the War of Spanish Succession in the early 1700s. This regime has been unduly kind to the long-only risk parity style investing. They have tended to view commerce in an almost soteriological way: 
+
+Saw the Vision of the world, and all the wonder that would be;
+Saw the heavens fill with commerce, argosies of magic sails,
+Pilots of the purple twilight dropping down with costly bales
+
+As a counterfactual, consider Russia (early 2000s) or China (early 2010s) both had periods of immense wealth creation, but this was not captured well by going long the countries stock market and bonds.    
+
+Two, there’s a lot of money and it needs to go somewhere. Were we to look at when the short-all strategy worked normalized against M2 money supply, it would be far more compelling. There’s a lot of money and that money needs to go somewhere. The US being the de-facto market-makers for a bunch of commodities make it the obvious place for liquidity to go.
+
+Were either of those assumptions to break...I think this becomes much much more viable. For now the best I can do is offer breif explinations for why the trade worked during certain periods.
+""")
+                
 # 4.1 2022
 st.text("")
 st.markdown("##### 2022")
-st.write("An in-depth look at the performance of the short-all strategy in 2022, examining the factors that contributed to its success or failure.")
+st.write("""
+Rates go up because there was a lot of inflation from covid. Partly because there was a record amount of money printed, partly because consumer spending went way down and then way back up, and partly because the companies cut production and there was a rush to turn back on production capacity. 
+Rates were sitting sub-zero in many developed economies, and sub 1% in the US. The Fed raised rates to counteract inflation. This became obvious in late 2021, I’m not sure why stocks didn’t drop more quickly. Bonds and Stocks both fall, which leads to okay returns for the short portfolio. 
+I'm suprised markets did not adjust downwards earlier.  
+""")         
 
 st.markdown("---")
 
+st.text("")
+st.markdown("##### 2002-2003")
+st.write("""
+Dollars (and stocks) go down due to combination of corporate scandals (Enron and WorldCom), account defecits, and emerging markets like China being more appealing
+""")         
+
+st.text("")
+st.markdown("##### H1 1994")
+st.write("""
+My understanding of what happened here is that a lot of insitutions had made money trading bonds the last 15 years...and were all levered long bonds" 
+""")         
+st.markdown("---")
 # 5. Predictions for 2024
 st.markdown("### 5. Predictions for 2024")
 st.write("Based on our analysis, here are some predictions for market trends and potential strategies for 2024.")
