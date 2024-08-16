@@ -9,6 +9,8 @@ import plotly.express as px
 
 from custom_plots import create_decade_scatter_plot, create_returns_plot, plot_rolling_excess_returns, plot_yield_comparison, plot_stock_bond_correlation, plot_portfolio_returns_bubble_year
 
+st.cache_data.clear()
+
 ##CONFIG
 # Set the title and favicon that appear in the Browser's tab bar.
 st.set_page_config(
@@ -35,6 +37,8 @@ def get_images():
 def get_data():
     df= pd.read_pickle("./Data/processed_data.pkl")
     return df[df.index.year>1970]
+
+
 
 st.title("Short All")
 st.markdown("---")
@@ -91,7 +95,8 @@ st.write("Note that in 1974 the short overperformed vs the long, but the best st
 st.write("For a more granular view of how the trade performed look at the bubble chart below. Select the window of time for which to put on the trade (3 months, 6 months, 12 months)...the portfolio weights are recomputed daily with 1y lookback window so putting on the trade just means expressing a short-all intention. Hover over a specific bubble to get the returns. Notice that as one chooses longer windows the short opportunities go away. A trade will work for 6 months, but the next 12 months of asset prices increases will wipe away the profit.") 
 st.write("The chart shows excess annualized excess returns. A 3 month short trade that makes 10% would show up as ~40%. (plz choose a time window from the dropdown if you want the chart to display correctly)") 
 st.markdown("---")
-df = get_data()  
+df = get_data()
+
 fig_decade = create_decade_scatter_plot()
 st.plotly_chart(fig_decade)
 st.markdown("---")
