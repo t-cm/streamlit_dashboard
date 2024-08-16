@@ -19,7 +19,7 @@ st.set_page_config(
 )
 
 ##FUNCTIONS
-@st.cache_data
+# @st.cache_data
 def get_images():
     # Create three columns
     col1, col2, col3 = st.columns(3)
@@ -33,7 +33,7 @@ def get_images():
     with col3:
         st.image("https://cdn.prod.website-files.com/634054c00f602044abb3060d/64625fa85ed5193ea3ad5f71_Bitcoin%20Rainbow%20Chart%20.webp", caption="Bitcoin Hyperstition: a very optimistic logistic regression", use_column_width=True)
 
-@st.cache_data
+# @st.cache_data
 def get_data():
     df= pd.read_pickle("./Data/processed_data.pkl")
     return df[df.index.year>1970]
