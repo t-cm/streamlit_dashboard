@@ -9,7 +9,7 @@ from window_functions import calculate_windowed_returns, calculate_windowed_annu
 def aggregate_daily_returns_to_annualized_returns(df, lookback_window=252, num_months=1):
 
     #WINDOW YEARLY RETURNS
-    returns_to_aggregate=['RET_SPX_d', 'RET_10Y_d', 'RET_DXY_d', 'RET_FFR_d', 'RET_SHORT_SPX_d', 'RET_SHORT_10Y_d', 'RET_SHORT_DXY_d', 'ER_SPX_d', 'ER_10Y_d', 'ER_DXY_d',
+    returns_to_aggregate=['RET_SPX_d', 'RET_10Y_d', 'RET_DXY_d', 'RET_FFR_d', 'RET_FXR_d', 'RET_SHORT_SPX_d', 'RET_SHORT_10Y_d', 'RET_SHORT_DXY_d', 'ER_SPX_d', 'ER_10Y_d', 'ER_DXY_d',
         'ER_SHORT_SPX_d', 'ER_SHORT_10Y_d', 'ER_SHORT_DXY_d','ER_RP_Portfolio_LONG', 'ER_RP_Portfolio_SHORT','RET_RP_Portfolio_LONG', 'RET_RP_Portfolio_SHORT',
         'ER_TANGENCY_Portfolio_SHORT', 'RET_TANGENCY_Portfolio_SHORT','RET_RPLONGSHORT_DELTA', 'RET_IDEALSHORT_DELTA']
 
@@ -19,8 +19,6 @@ def aggregate_daily_returns_to_annualized_returns(df, lookback_window=252, num_m
         df[agg_colum_name]=calculate_windowed_annualized_returns(df[_column], lookback_window)
 
     
-
-    print(num_months)
 
     #AGG YEAR SUMMARY
     windowed_columns = [col for col in df.columns if "IRR_" in col]
@@ -49,12 +47,12 @@ def create_decade_scatter_plot(
     PLOT_FREQ_MONTHS=1, 
     COLUMN_TO_PLOT='IRR_ER_RP_Portfolio_SHORT', 
     WEIGHTS_TO_HOVER=['RP_SHORT_SPX','RP_SHORT_10Y','RP_SHORT_DXY'], 
-    MARKETS_TO_HOVER=['IRR_ER_SPX_d','IRR_ER_10Y_d','IRR_ER_DXY_d'], 
+    MARKETS_TO_HOVER=['IRR_RET_SPX_d','IRR_RET_10Y_d','IRR_RET_DXY_d'], 
     START_YEAR=1970,
     IRR_PERIOD_OPTIONS=[1, 3, 6, 12]  # List of IRR period options in months
 ):
     def create_trace(irr_period_months):
-        lookback_window = 24 * irr_period_months
+        lookback_window = 22 * irr_period_months
 
         df = aggregate_daily_returns_to_annualized_returns(pd.read_pickle("./Data/processed_data.pkl"), lookback_window, PLOT_FREQ_MONTHS)
 
@@ -90,7 +88,7 @@ def create_decade_scatter_plot(
                     color=color_map[decade],
                     line=dict(width=1, color='DarkSlateGrey')
                 ),
-                text=[f"Date Range: {(date - pd.DateOffset(days=int(lookback_window/252*365))).strftime('%Y-%m')} to {date.strftime('%Y-%m')}<br>"
+                text=[f"Date Range: {(date - pd.DateOffset(days=int(lookback_window/252*365))).strftime('%Y-%m-%d')} to {date.strftime('%Y-%m-%d')}<br>"
                       f"Annualized ER: {return_:.2%}<br>"
                       f"Total ER. {return_ * (lookback_window / 252):.2%}<br>"
                       f"Weights:<br>"
@@ -100,7 +98,7 @@ def create_decade_scatter_plot(
                       f"Market AR:<br>"
                       f" SPX: {markets_[MARKETS_TO_HOVER[0]]:.2%}<br>"
                       f" 10Y: {markets_[MARKETS_TO_HOVER[1]]:.2%}<br>"
-                      f" DXY: {markets_[MARKETS_TO_HOVER[2]]:.2%}"
+                      f" DXY: {markets_[MARKETS_TO_HOVER[2]]:.2%}<br>"
                       for date, return_, weights_, markets_ in zip(decade_data.index, 
                                                                    decade_data[COLUMN_TO_PLOT],
                                                                    decade_data[WEIGHTS_TO_HOVER].to_dict('records'),
