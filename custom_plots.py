@@ -88,7 +88,7 @@ def create_decade_scatter_plot(
                     color=color_map[decade],
                     line=dict(width=1, color='DarkSlateGrey')
                 ),
-                text=[f"Date Range: {(date - pd.DateOffset(days=int(lookback_window/252*365))).strftime('%Y-%m-%d')} to {date.strftime('%Y-%m-%d')}<br>"
+                text=[f"Date Range: {(date - pd.DateOffset(days=int(lookback_window/252*365))).strftime('%Y-%m')} to {date.strftime('%Y-%m')}<br>"
                       f"Annualized ER: {return_:.2%}<br>"
                       f"Total ER. {return_ * (lookback_window / 252):.2%}<br>"
                       f"Weights:<br>"

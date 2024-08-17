@@ -11,8 +11,6 @@ import plotly.express as px
 from custom_plots import create_decade_scatter_plot, create_returns_plot, plot_rolling_excess_returns, plot_yield_comparison, plot_stock_bond_correlation, plot_portfolio_returns_bubble_year
 
 
-st.cache_data.clear()
-
 
 ##CONFIG
 # Set the title and favicon that appear in the Browser's tab bar.
@@ -23,7 +21,7 @@ st.set_page_config(
 
 
 ##FUNCTIONS
-# @st.cache_data
+@st.cache_data
 def get_images():
    # Create three columns
    col1, col2, col3 = st.columns(3)
@@ -40,7 +38,7 @@ def get_images():
        st.image("https://cdn.prod.website-files.com/634054c00f602044abb3060d/64625fa85ed5193ea3ad5f71_Bitcoin%20Rainbow%20Chart%20.webp", caption="Bitcoin Hyperstition: a very optimistic logistic regression", use_column_width=True)
 
 
-# @st.cache_data
+@st.cache_data
 def get_data():
    df= pd.read_pickle("./Data/processed_data.pkl")
    return df[df.index.year>1970]
@@ -168,6 +166,7 @@ st.markdown("---")
 
 # 2.2 Assumptions
 
+st.markdown("##### Assumptions")
 
 st.write("""
   Some assumptions about how to calculate excess returns for both the long and short of these assets.
@@ -195,7 +194,6 @@ st.latex(r"\text{DXY}_{short} = 5 \times (-r + (i_{FX} - i_{US}))")
 st.text("")
 
 
-st.markdown("##### Assumptions")
 st.write("""
 Some assumptions..
 When calculating returns, the short positions in stocks and bonds are assumed to be 100% short (i.e., the exact inverse of a long position) without any additional leverage. While short must pay (are negative) dividends in the case of stock and yield in the case of bonds.
